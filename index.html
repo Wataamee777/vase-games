@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>壺割りゲーム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 40px;
+    }
+
+    #tuboImg {
+      width: 200px;
+      margin-top: 20px;
+      transition: transform 0.1s ease;
+      cursor: pointer;
+    }
+
+    #score {
+      font-size: 1.5em;
+      margin-top: 20px;
+    }
+
+    #msg {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+
+    .fever {
+      animation: flash 0.3s infinite alternate;
+      background-color: gold !important;
+    }
+
+    @keyframes flash {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.7); }
+    }
+  </style>
+</head>
+<body>
+  <h1>壺割りゲーム</h1>
+  <img id="tuboImg" src="assets/vase.svg" alt="壺">
+  <div id="score">スコア：0</div>
+  <div id="msg"></div>
+
+  <!-- 効果音 -->
+  <audio id="breakSound" src="assets/pot_break.mp3" preload="auto"></audio>
+  <audio id="yajuVoice" src="assets/yaju_ah.mp3" preload="auto"></audio>
+
+  <script>
+    let score = 0;
+    let feverMode = false;
+
+    const tuboImg = document.getElementById("tuboImg");
+    const scoreEl = document.getElementById("score");
+    const msgEl = document.getElementById("msg");
+    const breakSound = document.getElementById("breakSound");
+    const yajuVoice = document.getElementById("yajuVoice");
+
+    const normalMsgs = [
+      "パリーン！", "粉々！", "また割った！", "割り職人", "バチが当たるぞ", "やりすぎぃ", "本物の壺か？"
+    ];
+    const feverMsgs = [
+      "🔥 フィーバーコンボ！", "💥 割れすぎ注意", "💫 限界突破ッ", "🌈 黄金の壺乱舞"
+    ];
+
+    tuboImg.addEventListener("click", () => {
+      score += 10;
+      localStorage.setItem("tuboScore", score);
+      scoreEl.textContent = `スコア：${score}`;
+      msgEl.textContent = feverMode
+        ? feverMsgs[Math.floor(Math.random() * feverMsgs.length)]
+        : normalMsgs[Math.floor(Math.random() * normalMsgs.length)];
+
+      breakSound.currentTime = 0;
+      breakSound.play();
+
+      tuboImg.style.transform = "scale(1.2)";
+      setTimeout(() => tuboImg.style.transform = "scale(1)", 100);
+
+      // スコア100超えで野獣先輩登場
+      if (score >= 100 && !document.getElementById("yjsnpi")) {
+        const img = document.createElement("img");
+        img.src = "assets/yaju.png";
+        img.id = "yjsnpi";
+        img.style.position = "fixed";
+        img.style.bottom = "10px";
+        img.style.right = "10px";
+        img.style.width = "150px";
+        img.style.border = "2px solid red";
+        img.style.zIndex = "9999";
+        document.body.appendChild(img);
+
+        msgEl.textContent = "割りすぎぃー！（迫真）";
+
+        yajuVoice.currentTime = 0;
+        yajuVoice.volume = 0.6;
+        yajuVoice.play();
+      }
+    });
+
+    // スコア初期化（保存値があれば復元）
+    if (localStorage.getItem("tuboScore")) {
+      score = parseInt(localStorage.getItem("tuboScore"));
+      scoreEl.textContent = `スコア：${score}`;
+      if(score >= 100){
+        // 100点以上なら野獣先輩も復活表示
+        const img = document.createElement("img");
+        img.src = "assets/yaju.png";
+        img.id = "yjsnpi";
+        img.style.position = "fixed";
+        img.style.bottom = "10px";
+        img.style.right = "10px";
+        img.style.width = "150px";
+        img.style.border = "2px solid red";
+        img.style.zIndex = "9999";
+        document.body.appendChild(img);
+      }
+    }
+
+    // 隠しコマンド：フィーバーモード
+    window.tuboFever = () => {
+      feverMode = true;
+      document.body.classList.add("fever");
+      tuboImg.src = "assets/golden_vase.svg";
+      console.log("%c🔥 フィーバーモード突入！クリックでぶっ壊せ！", "color: gold; font-weight: bold;");
+    };
+
+    console.log("%c壺割りゲーム起動中... 隠しコマンド: %ctuboFever()", "color: gray", "color: magenta; font-weight: bold;");
+  </script>
+</body>
+</html>
